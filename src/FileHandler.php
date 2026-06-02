@@ -4,74 +4,109 @@ declare(strict_types=1);
 
 namespace App;
 
-use BadMethodCallException;
-
 class FileHandler
 {
     /**
      * Write a complete CSV file using the supplied associative record as the first row.
      *
-     * The implementation should create or overwrite the target file, write a header row
-     * based on the keys of the provided associative array, and then write the record values
-     * in the same order as the header. Students should validate that the record is not empty
-     * and handle file-open or file-write failures safely.
-     *
-     * @param string $filePath Absolute or relative path to the CSV file to create.
-     * @param array<string, scalar|null> $record Associative student record to write.
-     *
-     * @return bool True when the write succeeds, otherwise false or an exception depending on the chosen design.
+     * @param string $filePath
+     * @param array<string, scalar|null> $record
+     * @return bool
      */
     public function writeRecord(string $filePath, array $record): bool
     {
-        // TODO: Open the file in write mode ('w') so an existing file is replaced.
-        // TODO: Write the CSV header using the record keys.
-        // TODO: Write the record values in the same column order as the header.
-        // TODO: Close the file handle before returning.
-        // TODO: Implement graceful error handling for invalid paths or write failures.
-        throw new BadMethodCallException('Not implemented');
+        // Reject an empty record early
+        if (empty($record)) {
+            return false;
+        }
+
+        $handle = @fopen($filePath, 'w');
+        if (!$handle) {
+            return false;
+        }
+
+        // Write header row from the keys, preserving their order
+        fputcsv($handle, array_keys($record));
+        // Write the data row in the same column order
+        fputcsv($handle, array_values($record));
+        fclose($handle);
+
+        return true;
     }
 
     /**
      * Read every row from a CSV file and return an array of associative arrays.
      *
-     * The implementation should open the file, read the first row as column headers,
-     * then map every subsequent row into an associative array using those headers.
-     * If the file does not exist, the method should handle the case gracefully in the
-     * way defined by the project requirements and tests.
-     *
-     * @param string $filePath Absolute or relative path to the CSV file to read.
-     *
-     * @return array<int, array<string, string>> All records as associative arrays.
+     * @param string $filePath
+     * @return array<int, array<string, string>>
      */
     public function readAllRecords(string $filePath): array
     {
-        // TODO: Check whether the target file exists before attempting to open it.
-        // TODO: Read the first row as CSV headers with fgetcsv().
-        // TODO: Read the remaining rows and combine each row with the headers.
-        // TODO: Return an empty array when the file is missing or contains no data.
-        // TODO: Close the file handle in all normal execution paths.
-        throw new BadMethodCallException('Not implemented');
+        // File missing or unreadable → return empty array without warnings
+        if (!file_exists($filePath) || !is_readable($filePath)) {
+            return [];
+        }
+
+        $handle = @fopen($filePath, 'r');
+        if (!$handle) {
+            return [];
+        }
+
+        $header = fgetcsv($handle);
+        // Empty file (no header line) → return empty set
+        if ($header === false) {
+            fclose($handle);
+            return [];
+        }
+
+        $records = [];
+        while (($data = fgetcsv($handle)) !== false) {
+            // Ignore empty lines (e.g., trailing newline)
+            if (count($data) === 1 && $data[0] === null) {
+                continue;
+            }
+            // Make data length match header length to avoid array_combine warnings
+            $data = array_pad($data, count($header), '');
+            $data = array_slice($data, 0, count($header));
+            $records[] = array_combine($header, $data);
+        }
+
+        fclose($handle);
+        return $records;
     }
 
     /**
      * Append one associative record to an existing CSV file, creating headers if needed.
      *
-     * The implementation should append a new row without destroying existing data.
-     * If the file is empty or missing, it should create the file and write the header
-     * row before appending the data row. The header order must match the array key order.
-     *
-     * @param string $filePath Absolute or relative path to the CSV file to append to.
-     * @param array<string, scalar|null> $record Associative student record to append.
-     *
-     * @return bool True when the append succeeds, otherwise false or an exception depending on the chosen design.
+     * @param string $filePath
+     * @param array<string, scalar|null> $record
+     * @return bool
      */
     public function appendRecord(string $filePath, array $record): bool
     {
-        // TODO: Detect whether the file exists and whether it is empty.
-        // TODO: Open the file in append mode ('a') so new records are added at the end.
-        // TODO: Write headers first if the file is new or empty.
-        // TODO: Append the record values in the same order as the header.
-        // TODO: Close the handle and report success or failure clearly.
-        throw new BadMethodCallException('Not implemented');
+        if (empty($record)) {
+            return false;
+        }
+
+        // Decide whether we need to write the header row first
+        $fileExists = file_exists($filePath);
+        $fileIsEmpty = $fileExists ? (filesize($filePath) === 0) : false;
+        $writeHeader = !$fileExists || $fileIsEmpty;
+
+        $handle = @fopen($filePath, 'a');
+        if (!$handle) {
+            return false;
+        }
+
+        // If the file is brand new or empty, start with the header row
+        if ($writeHeader) {
+            fputcsv($handle, array_keys($record));
+        }
+
+        // Append the data row (column order matches the header)
+        fputcsv($handle, array_values($record));
+        fclose($handle);
+
+        return true;
     }
 }
