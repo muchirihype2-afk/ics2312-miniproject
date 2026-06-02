@@ -4,109 +4,128 @@ declare(strict_types=1);
 
 namespace App;
 
-use BadMethodCallException;
-
 class SearchSorter
 {
     /**
-     * Search linearly through an array and return the index of the first matching value.
-     *
-     * The implementation should inspect elements one by one from left to right. If the
-     * target value is found, return its zero-based index. If the target does not exist in
-     * the array, return -1.
-     *
-     * @param array<int, int|string> $items Indexed array to search.
-     * @param int|string $target Value being searched for.
-     *
-     * @return int Zero-based index of the target, or -1 if not found.
+     * Linear search: scan left-to-right, return the first matching index or -1.
      */
     public function linearSearch(array $items, int|string $target): int
     {
-        // TODO: Loop through the array from index 0 to the last element.
-        // TODO: Compare each value to the target using a consistent equality rule.
-        // TODO: Return the matching index immediately when found.
-        // TODO: Return -1 after the loop if the target is not present.
-        throw new BadMethodCallException('Not implemented');
+        foreach ($items as $index => $value) {
+            if ($value === $target) {
+                return $index;
+            }
+        }
+        return -1;
     }
 
     /**
-     * Search a pre-sorted array using the binary search algorithm.
-     *
-     * The implementation should repeatedly inspect the middle element and reduce the
-     * search range until the target is found or the range becomes empty. The input array
-     * is expected to be sorted in ascending order before this method is called.
-     *
-     * @param array<int, int|string> $items Ascending sorted indexed array.
-     * @param int|string $target Value being searched for.
-     *
-     * @return int Zero-based index of the target, or -1 if not found.
+     * Binary search: works only on an ascending sorted array.
      */
     public function binarySearch(array $items, int|string $target): int
     {
-        // TODO: Track low and high bounds for the current search range.
-        // TODO: Compute the middle index and compare the middle value to the target.
-        // TODO: Narrow the search to the left or right half as appropriate.
-        // TODO: Return the index when the target is found, otherwise return -1.
-        throw new BadMethodCallException('Not implemented');
+        $low = 0;
+        $high = count($items) - 1;
+
+        while ($low <= $high) {
+            $mid = intdiv($low + $high, 2);
+            $midVal = $items[$mid];
+
+            if ($midVal === $target) {
+                return $mid;
+            }
+
+            if ($midVal < $target) {
+                $low = $mid + 1;
+            } else {
+                $high = $mid - 1;
+            }
+        }
+        return -1;
     }
 
     /**
-     * Sort an array in ascending order using bubble sort and count loop iterations.
-     *
-     * The implementation should return both the sorted array and the total number of
-     * comparison iterations performed. The expected return shape for this project is:
-     * `['sorted' => [...], 'iterations' => 0]`.
-     *
-     * @param array<int, int|float|string> $items Array to sort.
+     * Bubble sort (naive, no early exit) – counts every comparison.
      *
      * @return array{sorted: array<int, int|float|string>, iterations: int}
      */
     public function bubbleSort(array $items): array
     {
-        // TODO: Compare adjacent items and swap them when they are out of order.
-        // TODO: Repeat passes until the array is fully sorted.
-        // TODO: Count each comparison iteration performed by the algorithm.
-        // TODO: Return both the sorted array and the iteration count.
-        throw new BadMethodCallException('Not implemented');
+        $sorted = $items;
+        $n = count($sorted);
+        $iterations = 0;
+
+        for ($i = 0; $i < $n - 1; $i++) {
+            for ($j = 0; $j < $n - $i - 1; $j++) {
+                $iterations++; // count this comparison
+                if ($sorted[$j] > $sorted[$j + 1]) {
+                    // swap
+                    $temp = $sorted[$j];
+                    $sorted[$j] = $sorted[$j + 1];
+                    $sorted[$j + 1] = $temp;
+                }
+            }
+        }
+
+        return ['sorted' => $sorted, 'iterations' => $iterations];
     }
 
     /**
-     * Sort an array in ascending order using selection sort and count loop iterations.
-     *
-     * The implementation should repeatedly find the smallest remaining element and move
-     * it into its correct position. Return the result using the same structure required
-     * for all sorting methods in this project.
-     *
-     * @param array<int, int|float|string> $items Array to sort.
+     * Selection sort – counts comparisons against the current minimum.
      *
      * @return array{sorted: array<int, int|float|string>, iterations: int}
      */
     public function selectionSort(array $items): array
     {
-        // TODO: For each position, search the unsorted portion for the minimum value.
-        // TODO: Swap the minimum value into the current position when needed.
-        // TODO: Count each comparison iteration.
-        // TODO: Return the sorted array and total iteration count.
-        throw new BadMethodCallException('Not implemented');
+        $sorted = $items;
+        $n = count($sorted);
+        $iterations = 0;
+
+        for ($i = 0; $i < $n - 1; $i++) {
+            $minIdx = $i;
+            for ($j = $i + 1; $j < $n; $j++) {
+                $iterations++; // comparison
+                if ($sorted[$j] < $sorted[$minIdx]) {
+                    $minIdx = $j;
+                }
+            }
+            if ($minIdx !== $i) {
+                $temp = $sorted[$i];
+                $sorted[$i] = $sorted[$minIdx];
+                $sorted[$minIdx] = $temp;
+            }
+        }
+
+        return ['sorted' => $sorted, 'iterations' => $iterations];
     }
 
     /**
-     * Sort an array in ascending order using insertion sort and count loop iterations.
-     *
-     * The implementation should build a sorted portion of the array by taking one value
-     * at a time and inserting it into the correct place. Return both the sorted array and
-     * the total number of element comparisons made.
-     *
-     * @param array<int, int|float|string> $items Array to sort.
+     * Insertion sort – counts each comparison while searching for the insert point.
      *
      * @return array{sorted: array<int, int|float|string>, iterations: int}
      */
     public function insertionSort(array $items): array
     {
-        // TODO: Start from the second element and treat earlier elements as the sorted portion.
-        // TODO: Shift larger values to the right until the correct insertion point is found.
-        // TODO: Count each comparison iteration made while searching for the insertion point.
-        // TODO: Return the sorted array and total iteration count.
-        throw new BadMethodCallException('Not implemented');
+        $sorted = $items;
+        $n = count($sorted);
+        $iterations = 0;
+
+        for ($i = 1; $i < $n; $i++) {
+            $key = $sorted[$i];
+            $j = $i - 1;
+
+            while ($j >= 0) {
+                $iterations++; // the comparison about to happen
+                if ($sorted[$j] > $key) {
+                    $sorted[$j + 1] = $sorted[$j];
+                    $j--;
+                } else {
+                    break;
+                }
+            }
+            $sorted[$j + 1] = $key;
+        }
+
+        return ['sorted' => $sorted, 'iterations' => $iterations];
     }
 }
