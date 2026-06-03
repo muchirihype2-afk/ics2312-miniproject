@@ -12,52 +12,52 @@ declare(strict_types=1);
  * 5. Keep presentation markup in this file and business validation logic in src/FormValidator.php.
  */
 
-$old = [
-    'name' => '',
-    'email' => '',
-    'age' => '',
-];
+session_start();
 
-$errors = [];
+// Retrieve errors and old input from the session (if any), then clear them
+$errors = $_SESSION['errors'] ?? [];
+$old    = $_SESSION['old'] ?? [];
+unset($_SESSION['errors'], $_SESSION['old']);
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Registration Stub</title>
+    <title>Student Registration</title>
 </head>
 <body>
     <h1>Student Registration</h1>
-    <p>This page is a stub. Students should complete the form and connect it to <code>process.php</code>.</p>
 
-    <!-- TODO: Replace this placeholder form with a complete, styled registration form. -->
     <form action="process.php" method="post">
         <div>
-            <label for="name">Name</label>
-            <input type="text" id="name" name="name" value="<?= htmlspecialchars($old['name'], ENT_QUOTES, 'UTF-8') ?>">
-            <?php if (isset($errors['name'])): ?>
-                <p><?= htmlspecialchars($errors['name'], ENT_QUOTES, 'UTF-8') ?></p>
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name"
+                   value="<?= htmlspecialchars($old['name'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
+            <?php if (!empty($errors['name'])): ?>
+                <p style="color:red;"><?= htmlspecialchars($errors['name'], ENT_QUOTES, 'UTF-8') ?></p>
             <?php endif; ?>
         </div>
 
         <div>
-            <label for="email">Email</label>
-            <input type="email" id="email" name="email" value="<?= htmlspecialchars($old['email'], ENT_QUOTES, 'UTF-8') ?>">
-            <?php if (isset($errors['email'])): ?>
-                <p><?= htmlspecialchars($errors['email'], ENT_QUOTES, 'UTF-8') ?></p>
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email"
+                   value="<?= htmlspecialchars($old['email'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
+            <?php if (!empty($errors['email'])): ?>
+                <p style="color:red;"><?= htmlspecialchars($errors['email'], ENT_QUOTES, 'UTF-8') ?></p>
             <?php endif; ?>
         </div>
 
         <div>
-            <label for="age">Age</label>
-            <input type="number" id="age" name="age" value="<?= htmlspecialchars($old['age'], ENT_QUOTES, 'UTF-8') ?>">
-            <?php if (isset($errors['age'])): ?>
-                <p><?= htmlspecialchars($errors['age'], ENT_QUOTES, 'UTF-8') ?></p>
+            <label for="age">Age:</label>
+            <input type="number" id="age" name="age"
+                   value="<?= htmlspecialchars($old['age'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
+            <?php if (!empty($errors['age'])): ?>
+                <p style="color:red;"><?= htmlspecialchars($errors['age'], ENT_QUOTES, 'UTF-8') ?></p>
             <?php endif; ?>
         </div>
 
-        <button type="submit">Submit</button>
+        <button type="submit">Register</button>
     </form>
 </body>
 </html>
